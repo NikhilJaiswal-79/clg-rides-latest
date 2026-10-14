@@ -21,6 +21,9 @@ export async function GET(req: Request) {
         console.log(`Analyzing for: ${dayName}, ${dateString}`);
 
         // 3. Fetch All Users
+        if (!dbAdmin) {
+            return NextResponse.json({ success: false, error: "Firebase Admin is not configured. Please set FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY." }, { status: 500 });
+        }
         const usersSnapshot = await dbAdmin.collection('users').get();
         const bookingsMade: any[] = [];
 

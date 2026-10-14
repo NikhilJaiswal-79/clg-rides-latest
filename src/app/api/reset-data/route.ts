@@ -4,6 +4,8 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { authAdmin } from "@/lib/firebaseAdmin"; // Import Admin Auth
 
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
     try {
         const results = [];
@@ -25,14 +27,18 @@ export async function POST() {
 
         // 2. Wipe Firebase Auth Users (Requires Admin SDK)
         try {
-            const listUsersResult = await authAdmin.listUsers(1000);
-            const uids = listUsersResult.users.map((user) => user.uid);
+            if (authAdmin) {
+                const listUsersResult = await authAdmin.listUsers(1000);
+                const uids = listUsersResult.users.map((user) => user.uid);
 
-            if (uids.length > 0) {
-                await authAdmin.deleteUsers(uids);
-                results.push(`Auth: Deleted ${uids.length} users.`);
+                if (uids.length > 0) {
+                    await authAdmin.deleteUsers(uids);
+                    results.push(`Auth: Deleted ${uids.length} users.`);
+                } else {
+                    results.push(`Auth: No users found.`);
+                }
             } else {
-                results.push(`Auth: No users found.`);
+                results.push(`Auth: Skipped (Admin credentials not configured).`);
             }
         } catch (authError: any) {
             console.error("Auth Wipe Error:", authError);
